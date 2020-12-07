@@ -1,7 +1,6 @@
 #![no_std]
 #![no_main]
 #![feature(type_alias_impl_trait)]
-#![feature(alloc_error_handler)]
 
 #[path = "../example_common.rs"]
 mod example_common;
@@ -9,8 +8,6 @@ use example_common::*;
 
 use core::mem;
 use cortex_m_rt::entry;
-use defmt::info;
-use defmt::{panic, *};
 
 use nrf_softdevice::ble::{gatt_server, peripheral, Connection};
 use nrf_softdevice::{raw, RawError, Softdevice};
@@ -34,7 +31,7 @@ struct BatteryService {
 
 #[task]
 async fn bluetooth_task(sd: &'static Softdevice, config: peripheral::Config) {
-    let server: BatteryService = unwrap!(gatt_server::register(sd));
+    let server: BatteryService = gatt_server::register(sd).unwrap();
     #[rustfmt::skip]
     let adv_data = &[
         0x02, 0x01, raw::BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE as u8,
@@ -52,45 +49,29 @@ async fn bluetooth_task(sd: &'static Softdevice, config: peripheral::Config) {
             adv_data,
             scan_data,
         };
-        let conn = unwrap!(peripheral::advertise(sd, adv, &config).await);
-
-        info!("advertising done!");
+        let conn = peripheral::advertise(sd, adv, &config).await.unwrap();
 
         // Run the GATT server on the connection. This returns when the connection gets disconnected.
         let res = gatt_server::run(&conn, &server, |e| match e {
             BatteryServiceEvent::BatteryLevelWrite(val) => {
-                info!("wrote battery level: {:u8}", val);
-                if let Err(e) = server.battery_level_notify(&conn, val + 1) {
-                    info!("send notification error: {:?}", e);
-                }
+                if let Err(e) = server.battery_level_notify(&conn, val + 1) {}
             }
             BatteryServiceEvent::FooWrite(val) => {
-                info!("wrote battery level: {:u16}", val);
-                if let Err(e) = server.foo_notify(&conn, val + 1) {
-                    info!("send notification error: {:?}", e);
-                }
+                if let Err(e) = server.foo_notify(&conn, val + 1) {}
             }
-            BatteryServiceEvent::BatteryLevelNotificationsEnabled => {
-                info!("battery notifications enabled")
-            }
-            BatteryServiceEvent::BatteryLevelNotificationsDisabled => {
-                info!("battery notifications disabled")
-            }
-            BatteryServiceEvent::FooNotificationsEnabled => info!("foo notifications enabled"),
-            BatteryServiceEvent::FooNotificationsDisabled => info!("foo notifications disabled"),
+            BatteryServiceEvent::BatteryLevelNotificationsEnabled => {}
+            BatteryServiceEvent::BatteryLevelNotificationsDisabled => {}
+            BatteryServiceEvent::FooNotificationsEnabled => {}
+            BatteryServiceEvent::FooNotificationsDisabled => {}
         })
         .await;
 
-        if let Err(e) = res {
-            info!("gatt_server run exited with error: {:?}", e);
-        }
+        if let Err(e) = res {}
     }
 }
 
 #[entry]
 fn main() -> ! {
-    info!("Hello World!");
-
     let config = nrf_softdevice::Config {
         clock: Some(raw::nrf_clock_lf_cfg_t {
             source: raw::NRF_CLOCK_LF_SRC_XTAL as u8,
@@ -129,8 +110,10 @@ fn main() -> ! {
     let sd = Softdevice::enable(sdp, &config);
 
     let executor = EXECUTOR.put(Executor::new(cortex_m::asm::sev));
-    unwrap!(executor.spawn(softdevice_task(sd)));
-    unwrap!(executor.spawn(bluetooth_task(sd, peripheral::Config::default())));
+    executor.spawn(softdevice_task(sd)).unwrap();
+    executor
+        .spawn(bluetooth_task(sd, peripheral::Config::default()))
+        .unwrap();
 
     loop {
         executor.run();

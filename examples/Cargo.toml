@@ -6,33 +6,24 @@ version = "0.1.0"
 
 [features]
 default = [
-    "defmt-default",
     "ble-l2cap",
     "ble-gatt-server",
     "ble-gatt-client",
 ]
-defmt-default = []
-defmt-trace = []
-defmt-debug = []
-defmt-info = []
-defmt-warn = []
-defmt-error = []
 
 ble-l2cap = ["nrf-softdevice/ble-l2cap"]
 ble-gatt-server = ["nrf-softdevice/ble-gatt-server"]
 ble-gatt-client = ["nrf-softdevice/ble-gatt-client"]
 
 [dependencies]
-embassy = { version = "0.1.0", features = ["defmt"]}
-embassy-nrf = { version = "0.1.0", features = [ "defmt", "52840" ]}
+embassy = { version = "0.1.0"}
+embassy-nrf = { version = "0.1.0", features = [ "52840" ]}
 cortex-m        = { version = "0.6.4" }
 cortex-m-rt = "0.6.13"
 cortex-m-rtic = { version = "0.5.5", optional = true }
-defmt = "0.1.3"
-nrf-softdevice-defmt-rtt = { path = "../nrf-softdevice-defmt-rtt", version = "0.1.0" }
 panic-probe = "0.1.0"
 nrf52840-hal    = { version = "0.11.0" }
-nrf-softdevice = { version = "0.1.0", path = "../nrf-softdevice", features = ["defmt-trace", "nrf52840", "s140", "ble-peripheral", "ble-central"] }
+nrf-softdevice = { version = "0.1.0", path = "../nrf-softdevice", features = [ "nrf52840", "s140", "ble-peripheral", "ble-central"] }
 nrf-softdevice-s140 = { version = "0.1.1", path = "../nrf-softdevice-s140" }
 futures = { version = "0.3.5", default-features = false }
 fixed = "1.2.0"
