@@ -41,7 +41,9 @@ The following nRF chips are supported
 
 Some softdevices support only some chips, check Nordic's documentation for details.
 
-## Running examples
+## Installing Dependencies
+
+This repo expects [cargo-flash](https://github.com/probe-rs/cargo-flash) and [probe-run](https://github.com/knurling-rs/probe-run) to be installed (don't forget their libusb dependency)
 
 Instructions for S140 and nrf52840-dk. You may have to adjust accordingly.
 
@@ -49,7 +51,9 @@ Flashing the softdevice is required. It is NOT part of the built binary. You onl
 
 - Download SoftDevice S140 from Nordic's website [here](https://www.nordicsemi.com/Software-and-tools/Software/S140/Download). Supported versions are 7.x.x
 - Unzip
-- `nrfjprog --family NRF52 --chiperase --verify --program s140_nrf52_7.0.1_softdevice.hex`
+- `cargo flash --hex s140_nrf52_7.0.1_softdevice.hex`
+
+## Running examples
 
 To run an example, simply use `cargo run`:
 
